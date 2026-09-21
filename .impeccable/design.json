@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-21T00:00:00Z",
+  "title": "Design System: Downly",
+  "extensions": {
+    "colorMeta": {
+      "void": { "role": "neutral", "displayName": "Vacío", "canonical": "#0b0d1a", "tonalRamp": ["#0b0d1a", "#12152a", "#1c2038", "#2b3050", "#454c73", "#6e76a0", "#a2a9cb", "#dcdfef"] },
+      "ink": { "role": "neutral", "displayName": "Tinta", "canonical": "#13162b", "tonalRamp": ["#0b0d1a", "#13162b", "#20244a", "#333971", "#4d55a0", "#7580c8", "#a9b1e4", "#dfe2f6"] },
+      "night": { "role": "neutral", "displayName": "Noche", "canonical": "#1a1d3a", "tonalRamp": ["#0e1024", "#1a1d3a", "#282c58", "#3b4180", "#5560ad", "#818acf", "#b0b6e6", "#e1e4f6"] },
+      "lilac": { "role": "primary", "displayName": "Lila de portal", "canonical": "#6a6cf6", "tonalRamp": ["#15164a", "#23257f", "#3335b8", "#4a4cdc", "#6a6cf6", "#9395fa", "#bcbdfc", "#e4e4fe"] },
+      "mist": { "role": "primary", "displayName": "Bruma", "canonical": "#bfd2ff", "tonalRamp": ["#1a2440", "#2e4173", "#4762a6", "#6e8ed6", "#9db6f5", "#bfd2ff", "#dbe6ff", "#f3f7ff"] },
+      "ember": { "role": "secondary", "displayName": "Ember incandescente", "canonical": "#ff6a3d", "tonalRamp": ["#3d1409", "#6e2410", "#a83816", "#e24f26", "#ff6a3d", "#ff9070", "#ffbba5", "#ffe3d9"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "H1 del hero: Archivo al 62% de ancho, mayúsculas, color bruma." },
+      "headline": { "displayName": "Headline", "purpose": "Un H2 por sección de producto, misma voz condensada." },
+      "title": { "displayName": "Title", "purpose": "Títulos de paso y de la vista previa." },
+      "lead": { "displayName": "Lead", "purpose": "Una frase bajo el H1, máximo 40ch." },
+      "body": { "displayName": "Body", "purpose": "Texto corrido de producto." },
+      "small": { "displayName": "Small", "purpose": "Pistas, metadatos y pie." },
+      "label": { "displayName": "Label", "purpose": "Rótulos diminutos ensanchados: navegación, campos, términos, fase." },
+      "button": { "displayName": "Button", "purpose": "Texto de botones y opciones segmentadas." },
+      "figure": { "displayName": "Figure", "purpose": "Contador de progreso en Martian Mono ligera." },
+      "data": { "displayName": "Data", "purpose": "Metadatos, salidas y cifras en mono tabular." }
+    },
+    "shadows": [
+      { "name": "brasa-de-boton", "value": "0 14px 34px -14px rgba(255, 106, 61, 0.6)", "purpose": "Resplandor ember suave bajo el botón primario, solo en hover (active: 0 6px 18px -8px)." },
+      { "name": "anillo-de-foco-de-campo", "value": "0 0 0 3px rgba(106, 108, 246, 0.32)", "purpose": "Halo lila en campos de formulario enfocados." },
+      { "name": "halo-del-titular", "value": "0 6px 48px rgba(11, 13, 26, 0.75)", "purpose": "Text-shadow difuso oscuro tras el H1 sobre el shader." }
+    ],
+    "motion": [
+      { "name": "ease-portal", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Curva única para entradas, cursor, barra de progreso y sombras." },
+      { "name": "rise", "value": "1s ease-portal, escalonado 110ms, desplazamiento 32px", "purpose": "Entrada de los elementos del hero tras la intro." },
+      { "name": "hover-rapido", "value": "0.2s", "purpose": "Cambios de borde y color a ember o lila." },
+      { "name": "intro-contador", "value": "1100ms de 000 a 100, salida con clip-path 0.9s", "purpose": "Intro una vez por sesión; nunca con movimiento reducido." }
+    ],
+    "breakpoints": [
+      { "name": "compacto", "value": "560px" },
+      { "name": "shader-estrecho", "value": "760px" },
+      { "name": "tablet", "value": "960px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal (Analizar, Descargar): degradado lila, borde lila, hover ember.",
+      "html": "<button class=\"ds-btn\">Analizar <svg class=\"ds-ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; height: 64px; padding: 0 30px; font: inherit; font-size: 0.875rem; font-weight: 600; font-stretch: 118%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mist, #bfd2ff); background: linear-gradient(180deg, rgba(106,108,246,0.34), rgba(106,108,246,0.1)); border: 1px solid var(--lilac, #6a6cf6); border-radius: 8px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.3s cubic-bezier(0.16,1,0.3,1), color 0.2s; } .ds-btn:hover { border-color: var(--ember, #ff6a3d); color: #fff; box-shadow: 0 14px 34px -14px rgba(255,106,61,0.6); } .ds-btn:focus-visible { outline: 2px solid var(--ember, #ff6a3d); outline-offset: 3px; } .ds-btn:active { box-shadow: 0 6px 18px -8px rgba(255,106,61,0.6); } .ds-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Acción secundaria pequeña, como Borrar historial.",
+      "html": "<button class=\"ds-btn-ghost\">Borrar historial</button>",
+      "css": ".ds-btn-ghost { height: 40px; padding: 0 16px; font: inherit; font-size: 0.75rem; font-weight: 600; font-stretch: 118%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mist, #bfd2ff); background: transparent; border: 1px solid rgba(191,210,255,0.36); border-radius: 8px; cursor: pointer; transition: border-color 0.2s, color 0.2s; } .ds-btn-ghost:hover { border-color: var(--ember, #ff6a3d); color: #fff; } .ds-btn-ghost:focus-visible { outline: 2px solid var(--ember, #ff6a3d); outline-offset: 3px; }"
+    },
+    {
+      "name": "Link Input",
+      "kind": "input",
+      "refersTo": "input-link",
+      "description": "El campo donde se pega el link: vidrio oscuro, 64px, foco lila.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"https://...\" aria-label=\"Link del video\">",
+      "css": ".ds-input { width: 100%; height: 64px; padding: 0 22px; font: inherit; font-size: 1.125rem; color: var(--text, #d9e3ff); background: rgba(11,13,26,0.72); border: 1px solid rgba(191,210,255,0.36); border-radius: 8px; caret-color: var(--ember, #ff6a3d); transition: border-color 0.2s, box-shadow 0.2s; } .ds-input::placeholder { color: var(--muted, #a6b1d3); opacity: 1; } .ds-input:hover { border-color: rgba(191,210,255,0.55); } .ds-input:focus-visible { outline: none; border-color: var(--lilac, #6a6cf6); box-shadow: 0 0 0 3px rgba(106,108,246,0.32); }"
+    },
+    {
+      "name": "Segmented Option",
+      "kind": "chip",
+      "refersTo": "segmented-option",
+      "description": "Par Video / Solo audio: borde de 1px, seleccionado en lila, hover ember.",
+      "html": "<div class=\"ds-seg\"><span class=\"ds-seg-item is-checked\">Video</span><span class=\"ds-seg-item\">Solo audio</span></div>",
+      "css": ".ds-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .ds-seg-item { display: flex; align-items: center; justify-content: center; height: 52px; font-size: 0.875rem; font-weight: 600; font-stretch: 118%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted, #a6b1d3); border: 1px solid rgba(191,210,255,0.36); border-radius: 6px; cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s; } .ds-seg-item:hover { border-color: var(--ember, #ff6a3d); color: #fff; } .ds-seg-item.is-checked { color: var(--mist, #bfd2ff); border-color: var(--lilac, #6a6cf6); background: rgba(106,108,246,0.2); }"
+    },
+    {
+      "name": "Glass Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Contenedor funcional de la herramienta: scrim oscuro y borde de 1px, sin sombra.",
+      "html": "<div class=\"ds-panel\"><p class=\"ds-panel-title\">Título del video</p><p class=\"ds-panel-meta\">12:34 · 48 MB</p></div>",
+      "css": ".ds-panel { padding: 20px; background: rgba(11,13,26,0.74); border: 1px solid rgba(191,210,255,0.16); border-radius: 8px; color: var(--text, #d9e3ff); } .ds-panel-title { margin: 0 0 8px; font-size: 1.375rem; font-weight: 600; line-height: 1.25; color: #fff; } .ds-panel-meta { margin: 0; font-family: 'Martian Mono Var', ui-monospace, Consolas, monospace; font-size: 0.875rem; color: var(--muted, #a6b1d3); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Progress Counter",
+      "kind": "custom",
+      "refersTo": "progress-counter",
+      "description": "Componente firma: cifra mono ligera enorme y barra punteada cuyo frente va de lila a ember.",
+      "html": "<div class=\"ds-progress\"><span class=\"ds-pct\">64%</span><div class=\"ds-bar\"><div class=\"ds-fill\"></div></div></div>",
+      "css": ".ds-progress { display: grid; grid-template-columns: auto 1fr; gap: 8px 40px; align-items: end; padding: 24px 28px; background: rgba(11,13,26,0.74); border: 1px solid rgba(191,210,255,0.16); border-radius: 8px; } .ds-pct { font-family: 'Martian Mono Var', ui-monospace, Consolas, monospace; font-size: clamp(3rem, 8.5vw, 6.5rem); font-weight: 300; line-height: 1; color: var(--mist, #bfd2ff); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; } .ds-bar { height: 12px; overflow: hidden; background: rgba(191,210,255,0.16); -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 8px); mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 8px); } .ds-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #6a6cf6, #bfd2ff 60%, #ff6a3d); transform: scaleX(0.64); transform-origin: left; }"
+    },
+    {
+      "name": "Hairline with Cross",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Firma de cabecera y de apertura de cada sección: hairline de 1px con marca vertical central de 13px.",
+      "html": "<div class=\"ds-cross\"></div>",
+      "css": ".ds-cross { height: 13px; background: linear-gradient(rgba(191,210,255,0.16), rgba(191,210,255,0.16)) center / 100% 1px no-repeat, linear-gradient(rgba(191,210,255,0.36), rgba(191,210,255,0.36)) center / 1px 100% no-repeat; }"
+    },
+    {
+      "name": "Spec Row",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Fila de especificación o límite: hairline superior, rótulo o cifra a la izquierda, texto a la derecha; hover ember.",
+      "html": "<dl class=\"ds-spec\"><div><dt>200 MB</dt><dd>Es el peso máximo de cada archivo.</dd></div></dl>",
+      "css": ".ds-spec { margin: 0; } .ds-spec > div { display: grid; grid-template-columns: minmax(150px, 1fr) 3fr; gap: 8px 40px; padding: 22px 0; border-top: 1px solid rgba(191,210,255,0.16); border-bottom: 1px solid rgba(191,210,255,0.16); transition: border-color 0.3s; } .ds-spec > div:hover { border-top-color: var(--ember, #ff6a3d); } .ds-spec dt { font-family: 'Martian Mono Var', ui-monospace, Consolas, monospace; font-size: 1.25rem; color: var(--mist, #bfd2ff); font-variant-numeric: tabular-nums; } .ds-spec dd { margin: 0; max-width: 62ch; color: var(--text, #d9e3ff); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El portal de luz",
+    "overview": "Downly no es un formulario con fondo decorado: es un campo de luz viva a pantalla completa (un fragment shader WebGL de cintas de luz punteada sobre azul casi negro) y la interfaz flota encima como tipografía y líneas de 1px. Pegar un link es el gesto principal, y todo el resto del sistema existe para que ese gesto se sienta como acercarse a una fuente de luz, no como llenar un trámite. El mundo es nocturno, frío y silencioso; lo único cálido es el ember, y aparece cuando algo responde o avanza.\n\nLa tensión tipográfica es el carácter: un Archivo condensado al 62% de ancho, enorme y en mayúsculas, frente a rótulos de 12px muy espaciados y ensanchados al 118%. El espacio es amplio y la densidad baja; las secciones de producto se separan con una hairline con cruz, no con bloques de color. Los paneles funcionales son vidrio oscuro con borde de 1px, sin sombra, y existen solo mientras la herramienta los necesita.\n\nEl sistema rechaza la plantilla SaaS clara y la web de descargas llena de banners; cada superficie nueva debe leerse como parte del mismo campo nocturno.",
+    "keyCharacteristics": [
+      "Un campo WebGL fijo detrás de todo; la interfaz es tipografía y hairlines encima.",
+      "Paleta fría de cinco tonos más un único acento cálido (ember) reservado a respuesta y avance.",
+      "Archivo condensado enorme (wdth 62, peso 560) contra rótulos diminutos ensanchados (wdth 118, tracking 0.18em).",
+      "Líneas de 1px como estructura; grano de película al 4% sobre todo.",
+      "Martian Mono ligera para toda cifra: contador de progreso, metadatos, límites.",
+      "El campo reacciona a la app: la energía sube al analizar o descargar y el ember crece con el progreso."
+    ],
+    "rules": [
+      { "name": "The One Ember Rule", "body": "El ember es el único cálido y responde o avanza; jamás decora en reposo. Un elemento estático nunca es ember.", "section": "colors" },
+      { "name": "The Light, Not Surface Rule", "body": "El color se construye con luz sobre el vacío (shader, gradientes, tintes de lila de baja opacidad), no con superficies planas rellenas de color.", "section": "colors" },
+      { "name": "The Two Extremes Rule", "body": "La jerarquía se resuelve por contraste de extremos (condensado colosal contra rótulo ensanchado de 12px), no por una escalera de pesos intermedios.", "section": "typography" },
+      { "name": "The Tabular Rule", "body": "Toda cifra que cambia o se compara va en Martian Mono con dígitos tabulares.", "section": "typography" },
+      { "name": "The Shout Stays in Archivo Rule", "body": "Solo Display y Headline van en mayúsculas condensadas al 62%; el cuerpo nunca se condensa.", "section": "typography" },
+      { "name": "The Flat Until Touched Rule", "body": "Ninguna sombra en reposo sobre paneles o botones; la única sombra con color es la brasa ember y aparece solo en hover.", "section": "elevation" },
+      { "name": "The Soft Glow Only Rule", "body": "Toda sombra es un resplandor difuso; no hay sombras duras desplazadas.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do dejar el ember para hover, foco, avance y el cursor de texto; en el campo shader, apenas un tinte en reposo que crece con el progreso.",
+      "Do sostener la tensión Display 62% enorme contra Label 118% de 12px, y poner toda cifra en Martian Mono tabular.",
+      "Do estructurar con hairlines de 1px (line, line-strong) y la hairline con cruz al abrir una sección nueva.",
+      "Do colocar el texto sobre scrims oscuros de 72-74% cuando quede encima de las cintas de luz, y verificar el contraste sobre el campo real.",
+      "Do mantener el campo legible con movimiento reducido: un cuadro fijo del shader, sin cursor ni intro.",
+      "Do contar en español y con \"link\", \"descargar\", \"solo audio\" y \"calidad\", tal como fija PRODUCT.md."
+    ],
+    "donts": [
+      "Don't usar fondos claros ni la plantilla SaaS de tarjetas con sombra; el mundo es vacío nocturno.",
+      "Don't introducir un segundo acento cálido ni pintar de ember algo estático.",
+      "Don't convertir contenido de producto en tarjetas rellenas; usar filas con hairlines. Los paneles de vidrio se reservan a la herramienta.",
+      "Don't usar sombras duras desplazadas ni resplandores de color en reposo.",
+      "Don't condensar el cuerpo de texto ni subir Display o Headline a otra cara; la voz colosal es solo Archivo al 62%.",
+      "Don't imitar la estética de las webs de descarga con banners, contadores falsos o botones engañosos.",
+      "Don't colocar un rótulo diminuto encima de un titular a modo de antetítulo; los rótulos ya tienen trabajo funcional (navegación, campos, términos, fase)."
+    ]
+  }
+}

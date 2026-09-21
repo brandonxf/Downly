@@ -4,3 +4,8 @@ __pycache__/
 .env
 .vscode/
 .idea/
+
+# Capturas y referencias de trabajo del proceso de diseno
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/questions/
