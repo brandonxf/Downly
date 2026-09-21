@@ -3,124 +3,273 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Descargador de videos</title>
-<style>
-  :root { color-scheme: light dark; }
-  body {
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    max-width: 560px;
-    margin: 60px auto;
-    padding: 0 20px;
-    background: #f7f7f8;
-    color: #1a1a1a;
-  }
-  h1 { font-size: 1.4rem; margin-bottom: 4px; }
-  p.subtitle { color: #666; margin-top: 0; }
-  .card {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  input[type="text"] {
-    width: 100%;
-    padding: 12px 14px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 14px;
-    width: 100%;
-    padding: 12px 14px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: white;
-    background: #2563eb;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  button:disabled { background: #93b4ec; cursor: not-allowed; }
-  #status { margin-top: 14px; font-size: 0.92rem; min-height: 1.2em; }
-  #status.error { color: #c0392b; }
-  #status.ok { color: #1e8449; }
-  .note {
-    margin-top: 20px;
-    font-size: 0.82rem;
-    color: #888;
-  }
-</style>
+<title>Downly - Descarga videos y audio pegando un link</title>
+<meta name="description" content="Pega un link, mira qué vas a descargar y llévate el video o solo el audio. Sin cuenta y sin anuncios.">
+<meta name="theme-color" content="#0b0d1a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0d1a'/%3E%3Cpath d='M16 7v12m0 0-5-5m5 5 5-5M9 24h14' fill='none' stroke='%236a6cf6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preload" href="{{ url_for('static', filename='fonts/archivo-variable.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ url_for('static', filename='fonts/martian-mono-variable.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/downly.css') }}">
+<script>
+  /* La intro (contador hasta 100) solo se ve la primera vez de cada sesion y nunca con movimiento reducido. */
+  (function () {
+    try {
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!reduce && !sessionStorage.getItem("downly.intro")) {
+        document.documentElement.classList.add("is-intro");
+        setTimeout(function () { document.documentElement.classList.remove("is-intro"); }, 3500);
+      }
+    } catch (e) { /* sin almacenamiento: no hay intro */ }
+  })();
+</script>
 </head>
 <body>
-  <h1>Descargador de videos</h1>
-  <p class="subtitle">Pega el link del video y descárgalo directamente.</p>
+<!--
+THESIS: Downly es un portal, no un formulario: un campo de luz viva a pantalla completa donde pegar un link es el gesto principal. Rechaza la plantilla SaaS clara y la web de descargas con banners.
+OWN-WORLD: vacío #0B0D1A, tinta #13162B, noche #1A1D3A, lila #6A6CF6, bruma #BFD2FF; un solo acento incandescente ember #FF6A3D solo en hover, avance y foco de botones. Archivo condensado enorme frente a rótulos diminutos espaciados; líneas de 1px, sin tarjetas; grano de película.
+STORY: quien llega entiende que pega un link y se lleva el archivo, ve qué descargará antes de descargar, confía porque los límites están dichos de frente y descarga aquí mismo.
+FIRST VIEWPORT: shader a sangre; a la izquierda "PEGA EL LINK. DESCARGA." gigante, una frase y el campo del link con Analizar; cintas de luz a la derecha; rótulos diminutos en los márgenes.
+FORM: portal WebGL de estudio experiencial, elegido por el usuario (challenger; seed 7029638b).
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
 
-  <div class="card">
-    <input type="text" id="url" placeholder="https://..." />
-    <button id="btn">Descargar</button>
-    <div id="status"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</svg>
+
+<canvas id="field" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro-count" id="introCount">000</div>
+  <div class="intro-label label">Downly</div>
+</div>
+
+<header class="top">
+  <a class="brand" href="#top" aria-label="Downly, inicio">Downly</a>
+  <span class="rule" aria-hidden="true"></span>
+  <nav class="label" aria-label="Secciones">
+    <a href="#como">Cómo funciona</a>
+    <a href="#controles">Controles</a>
+    <a href="#limites">Límites</a>
+    <a class="keep" href="https://github.com/brandonxf/Downly" rel="noopener">GitHub</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero wrap" aria-labelledby="titulo">
+    <h1 id="titulo" class="rise" style="--i:1"><span>Pega el link.</span><span>Descarga.</span></h1>
+    <p class="lead rise" style="--i:2">Videos y audio de YouTube, TikTok, Instagram, X, Facebook y cientos de sitios más. Sin cuenta y sin anuncios.</p>
+
+    <div class="tool rise" style="--i:3">
+      <div class="url-row">
+        <label for="url" class="sr-only">Link del video</label>
+        <input type="text" id="url" inputmode="url" placeholder="https://..." autocomplete="off" spellcheck="false">
+        <button id="analyze" class="btn" type="button"><span>Analizar</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </div>
+      <div id="status" role="status" aria-live="polite"></div>
+
+      <div class="workspace" id="workspace">
+        <div id="preview" hidden>
+          <img id="thumb" alt="" referrerpolicy="no-referrer">
+          <p id="pTitle"></p>
+          <p id="pMeta"></p>
+          <dl id="pFacts" class="facts"></dl>
+        </div>
+
+        <form id="options" hidden>
+          <fieldset id="optsFs">
+            <div class="seg" role="radiogroup" aria-label="Qué descargar">
+              <input type="radio" name="mode" id="modeVideo" value="video" checked>
+              <label for="modeVideo">Video</label>
+              <input type="radio" name="mode" id="modeAudio" value="audio">
+              <label for="modeAudio">Solo audio</label>
+            </div>
+
+            <div class="group" id="gVideo">
+              <div class="group-title label">Video</div>
+              <div class="grid2">
+                <div class="field">
+                  <label for="quality" class="label">Calidad</label>
+                  <select id="quality"></select>
+                </div>
+                <div class="field">
+                  <label for="vformat" class="label">Formato</label>
+                  <select id="vformat">
+                    <option value="mp4">MP4 (recomendado)</option>
+                    <option value="mkv">MKV</option>
+                    <option value="webm">WebM (más lento)</option>
+                    <option value="gif">GIF animado</option>
+                  </select>
+                </div>
+              </div>
+              <p class="hint" id="vHint"></p>
+            </div>
+
+            <div class="group" id="gAudio" hidden>
+              <div class="group-title label">Audio</div>
+              <div class="grid2">
+                <div class="field">
+                  <label for="aformat" class="label">Formato</label>
+                  <select id="aformat">
+                    <option value="mp3">MP3</option>
+                    <option value="m4a">M4A (AAC)</option>
+                    <option value="opus">Opus</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="bitrate" class="label">Calidad</label>
+                  <select id="bitrate">
+                    <option value="128">128 kbps</option>
+                    <option value="192" selected>192 kbps</option>
+                    <option value="320">320 kbps</option>
+                  </select>
+                </div>
+              </div>
+              <p class="hint" id="aHint" hidden>Opus llega como máximo a 256 kbps.</p>
+            </div>
+
+            <div class="group" id="gVolume">
+              <div class="group-title label">Volumen</div>
+              <div class="field">
+                <label for="volMode" class="sr-only">Ajuste de volumen</label>
+                <select id="volMode">
+                  <option value="none">Sin cambios</option>
+                  <option value="gain">Subir o bajar</option>
+                  <option value="normalize">Normalizar (volumen parejo)</option>
+                </select>
+              </div>
+              <div class="range-row" id="gainRow" hidden>
+                <input type="range" id="gain" min="-20" max="20" step="1" value="0" aria-label="Decibelios">
+                <output id="gainOut" for="gain">0 dB</output>
+              </div>
+              <p class="hint" id="volHint" hidden></p>
+            </div>
+
+            <div class="group" id="gTrim">
+              <div class="group-title label">Recorte</div>
+              <label class="check"><input type="checkbox" id="trimOn"> <span>Descargar solo un fragmento</span></label>
+              <div class="grid2 sub-block" id="trimRow" hidden>
+                <div class="field">
+                  <label for="trimStart" class="label">Inicio</label>
+                  <input type="text" id="trimStart" placeholder="0:00" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="trimEnd" class="label">Fin</label>
+                  <input type="text" id="trimEnd" placeholder="hasta el final" autocomplete="off">
+                </div>
+              </div>
+              <p class="hint" id="trimHint" hidden>Escribe mm:ss o hh:mm:ss. Si dejas el fin vacío, llega hasta el final.</p>
+            </div>
+
+            <div class="group" id="gSubs">
+              <div class="group-title label">Subtítulos</div>
+              <div class="grid2">
+                <div class="field">
+                  <label for="subs" class="sr-only">Subtítulos</label>
+                  <select id="subs">
+                    <option value="none">Sin subtítulos</option>
+                    <option value="file">Archivo .srt aparte</option>
+                    <option value="embed">Incrustados en el video</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="subLang" class="sr-only">Idioma</label>
+                  <select id="subLang"></select>
+                </div>
+              </div>
+              <p class="hint" id="subsHint" hidden></p>
+            </div>
+
+            <div class="group" id="gPlaylist" hidden>
+              <div class="group-title label">Lista de reproducción</div>
+              <label class="check"><input type="checkbox" id="plOn"> <span id="plLabel"></span></label>
+              <p class="hint" id="plHint"></p>
+            </div>
+
+            <button type="submit" id="download" class="btn"><span id="downloadLabel">Descargar</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </fieldset>
+        </form>
+
+        <div id="progress" hidden>
+          <span id="progPct">0%</span>
+          <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progreso de la descarga">
+            <div id="barFill"></div>
+          </div>
+          <div id="progLine" class="label"><span id="progPhase"></span></div>
+          <div id="progMeta"></div>
+        </div>
+      </div>
+    </div>
+
+    <section id="history" hidden aria-labelledby="hist-titulo">
+      <div class="hist-head">
+        <h2 id="hist-titulo">Descargas recientes</h2>
+        <button type="button" class="btn btn-ghost" id="histClear">Borrar historial</button>
+      </div>
+      <ul id="histList"></ul>
+    </section>
+  </section>
+
+  <section class="section wrap" id="como" aria-labelledby="t-como">
+    <h2 class="big" id="t-como">Tres pasos, y ninguno es registrarte</h2>
+    <ol class="steps">
+      <li>
+        <span class="step-n">01</span>
+        <h3>Pega el link</h3>
+        <p>Copia la dirección del video en YouTube, TikTok, Instagram o donde esté y pégala arriba. Downly la analiza al pegarla.</p>
+      </li>
+      <li>
+        <span class="step-n">02</span>
+        <h3>Mira qué te vas a llevar</h3>
+        <p>Aparecen la miniatura, el título, la duración y el peso aproximado de cada calidad, antes de descargar nada.</p>
+      </li>
+      <li>
+        <span class="step-n">03</span>
+        <h3>Elige cómo lo quieres</h3>
+        <p>Video o solo audio, la calidad, el volumen, un fragmento, subtítulos. El archivo llega a tu carpeta de descargas.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section wrap" id="controles" aria-labelledby="t-controles">
+    <h2 class="big" id="t-controles">Un control real, no un botón único</h2>
+    <dl class="spec">
+      <div><dt class="label">Video</dt><dd>MP4 en H.264, MKV, WebM o GIF animado. Eliges la resolución entre las que el video realmente ofrece.</dd></div>
+      <div><dt class="label">Audio</dt><dd>MP3, M4A u Opus a 128, 192 o 320 kbps (Opus llega a 256 como máximo).</dd></div>
+      <div><dt class="label">Volumen</dt><dd>Sube o baja decibelios, o normaliza para que no suene ni muy bajo ni muy alto.</dd></div>
+      <div><dt class="label">Recorte</dt><dd>Descarga solo un fragmento: indica el inicio y el fin, sin bajar el video entero.</dd></div>
+      <div><dt class="label">Subtítulos</dt><dd>En un archivo .srt aparte o incrustados en el video (MP4 y MKV), en el idioma que el video tenga.</dd></div>
+      <div><dt class="label">Listas</dt><dd>Una lista de reproducción llega como un solo archivo .zip.</dd></div>
+      <div><dt class="label">Historial</dt><dd>Tus descargas recientes quedan a un clic, guardadas solo en tu navegador.</dd></div>
+    </dl>
+  </section>
+
+  <section class="section wrap" id="limites" aria-labelledby="t-limites">
+    <h2 class="big" id="t-limites">Los límites, dichos de frente</h2>
+    <dl class="spec limits">
+      <div><dt>200 MB</dt><dd>Es el peso máximo de cada archivo. Las calidades que lo superan aparecen desactivadas.</dd></div>
+      <div><dt>50 videos</dt><dd>De una lista de reproducción se descargan los primeros 50.</dd></div>
+      <div><dt>30 s</dt><dd>Duración máxima de un GIF, que además va sin sonido.</dd></div>
+      <div><dt class="label">WebM</dt><dd>Convertir a WebM tarda más, porque el video se procesa.</dd></div>
+      <div><dt class="label">Instagram</dt><dd>Este y otros sitios a veces exigen que el video sea público.</dd></div>
+    </dl>
+    <p class="legal"><strong>Uso responsable.</strong> Downly está pensado para uso personal. Descarga contenido propio o aquel del que tengas permiso, y respeta los derechos de autor y los términos de servicio de cada plataforma.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="#top">Downly</a>
+    <p>Hecho con yt-dlp y ffmpeg.</p>
+    <p><a href="https://github.com/brandonxf/Downly" rel="noopener">Código en GitHub</a></p>
   </div>
+</footer>
 
-  <p class="note">
-    Uso personal. Respeta los derechos de autor y los términos de servicio
-    de cada plataforma; descarga solo contenido propio o donde tengas permiso.
-  </p>
+<div class="state label" id="state" aria-hidden="true"><i></i><span>Estado</span><b id="stateText">En reposo</b></div>
+<div class="rail" aria-hidden="true"><i id="railDot"></i></div>
 
-<script>
-const btn = document.getElementById("btn");
-const input = document.getElementById("url");
-const status = document.getElementById("status");
-
-btn.addEventListener("click", async () => {
-  const url = input.value.trim();
-  status.className = "";
-  status.textContent = "";
-
-  if (!url) {
-    status.className = "error";
-    status.textContent = "Pega un link primero.";
-    return;
-  }
-
-  btn.disabled = true;
-  status.textContent = "Descargando... esto puede tardar según el tamaño del video.";
-
-  try {
-    const res = await fetch("/download", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || "Error al descargar.");
-    }
-
-    // El backend responde con el archivo: lo convertimos en descarga del navegador
-    const blob = await res.blob();
-    const disposition = res.headers.get("Content-Disposition") || "";
-    const match = disposition.match(/filename="?([^"]+)"?/);
-    const filename = match ? match[1] : "video.mp4";
-
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    status.className = "ok";
-    status.textContent = "¡Listo! Revisa tu carpeta de descargas.";
-  } catch (err) {
-    status.className = "error";
-    status.textContent = err.message;
-  } finally {
-    btn.disabled = false;
-  }
-});
-</script>
+<script src="{{ url_for('static', filename='js/portal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
