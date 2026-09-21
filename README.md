@@ -1,58 +1,79 @@
-# Descargador de videos (pega el link y descarga)
+# Downly
 
-App web mínima: una caja de texto donde pegas el link de un video (YouTube,
-TikTok, Instagram, X, Facebook, etc.) y un botón que lo descarga a tu
-computador. Corre 100% en tu máquina, no depende de ningún servicio externo
-más que la propia red social de donde sacas el video.
+**Pega un link. Descarga el video. Nada más.**
 
-## Cómo funciona por dentro
+Downly es un descargador de videos simple y directo: copias el enlace de un
+video, lo pegas, y en segundos lo tienes en tu computador, listo para
+reproducir.
 
-1. `templates/index.html` es el frontend: un input y un botón. Al hacer clic,
-   manda el link por `fetch()` al backend (`POST /download`).
-2. `app.py` es el backend (Flask). Recibe el link y se lo pasa a **yt-dlp**,
-   una librería open source que sabe extraer el video real detrás de la
-   página de cada red social (analiza el HTML/JSON de la página, encuentra
-   la URL directa del archivo de video y lo descarga).
-3. yt-dlp guarda el video en una carpeta temporal única por descarga.
-4. Flask le devuelve ese archivo al navegador con `send_file(...)`, y el
-   JavaScript del frontend lo convierte en una descarga normal.
+Sin registros, sin anuncios, sin instalar extensiones en el navegador y sin
+pasar por páginas llenas de botones falsos.
 
-Todo el trabajo de "entender" cada red social lo hace yt-dlp — por eso el
-backend es tan corto. Cuando una plataforma cambia su página, la comunidad
-de yt-dlp actualiza la librería (`pip install -U yt-dlp` para tener la
-última versión).
+---
 
-## Cómo correrlo
+## Qué puedes hacer con Downly
 
-Necesitas Python 3.9+ instalado.
+- **Descargar desde las redes que ya usas.** YouTube, TikTok, Instagram,
+  Facebook, X y cientos de sitios más. Si tiene un video público, lo más
+  probable es que Downly lo pueda bajar.
+- **Guardar el video para verlo sin conexión.** Ideal para viajes, clases,
+  trabajo o cualquier lugar sin buena señal.
+- **Conservar tu propio contenido.** Respalda los videos que tú mismo
+  publicaste antes de que se pierdan en una cuenta cerrada o un post borrado.
+- **Reproducirlo en cualquier parte.** Los videos se guardan en MP4 con
+  códec H.264, el más compatible: se abren directo en Windows, Mac, celular y
+  televisor, sin pedirte instalar códecs ni reproductores extra.
+
+## Por qué Downly
+
+| | |
+|---|---|
+| **Un solo paso** | Una caja de texto y un botón. No hay menús ni configuraciones que aprender. |
+| **Sin cuenta** | No te pide correo, contraseña ni datos personales. |
+| **Corre en tu equipo** | Funciona en tu propio computador, sin depender de un servicio de terceros que puede caerse o cambiar de dueño. |
+| **Siempre al día** | Usa [yt-dlp](https://github.com/yt-dlp/yt-dlp), el motor open source que la comunidad mantiene actualizado cada vez que una red social cambia su página. |
+| **Listo para reproducir** | Formato compatible desde el primer intento, sin conversiones manuales. |
+
+## Cómo se usa
+
+1. Abre el video en la red social y copia su enlace.
+2. Pégalo en Downly.
+3. Pulsa **Descargar**.
+
+Eso es todo. El archivo llega a tu carpeta de descargas.
+
+## En camino
+
+Estas funciones están planeadas para próximas versiones:
+
+- **Solo audio.** Saca la música o la voz de un video en MP3 o M4A.
+- **Elegir la calidad.** Escoge la resolución antes de descargar, desde 360p
+  hasta la máxima disponible.
+- **Vista previa.** Mira miniatura, título y duración antes de bajar el
+  archivo.
+- **Barra de progreso.** Sabe cuánto falta en cada descarga.
+- **Ajuste de volumen.** Sube, baja o normaliza el audio de un video.
+- **Recortar un fragmento.** Descarga solo la parte que te interesa.
+- **Listas de reproducción y subtítulos.**
+
+## Uso responsable
+
+Downly está pensado para uso personal. Descarga contenido propio o aquel del
+que tengas permiso, y respeta los derechos de autor y los términos de servicio
+de cada plataforma.
+
+<details>
+<summary>Para desarrolladores</summary>
+
+Hecho con Python, Flask y yt-dlp. Para correrlo en local:
 
 ```bash
-cd video-downloader-app
-python3 -m venv venv
-source venv/bin/activate        # en Windows: venv\Scripts\activate
+python -m venv venv
+venv\Scripts\activate        # en Mac/Linux: source venv/bin/activate
 pip install -r requirements.txt
 python app.py
 ```
 
-Abre `http://127.0.0.1:5000` en tu navegador, pega un link y dale a
-"Descargar".
+Luego abre `http://127.0.0.1:5000`.
 
-## Notas y límites a tener en cuenta
-
-- Hay un límite de 200MB por archivo (`max_filesize` en `app.py`) para
-  evitar descargas gigantes por accidente; lo puedes subir o quitar.
-- Algunas plataformas (Instagram, TikTok) a veces piden que el video sea
-  público, o que yt-dlp tenga cookies de sesión para contenido privado. Si
-  te encuentras con eso, yt-dlp soporta pasar cookies del navegador con la
-  opción `cookiesfrombrowser`.
-- Este servidor (`app.run(debug=True)`) es solo para uso local/personal, no
-  para exponerlo a internet tal cual.
-- Respeta derechos de autor y los términos de servicio de cada plataforma:
-  usa esto para contenido propio o donde tengas permiso.
-
-## Próximos pasos si quieres seguir mejorándolo
-
-- Mostrar una barra de progreso real durante la descarga (yt-dlp soporta un
-  `progress_hook`).
-- Dejar elegir calidad/formato antes de descargar.
-- Empaquetarlo como app de escritorio con algo como PyInstaller.
+</details>
