@@ -98,6 +98,41 @@ FFMPEG = find_ffmpeg()
 
 
 # ---------------------------------------------------------------------------
+# Cookies (opcional). Algunos sitios (Instagram sobre todo) limitan fuerte el
+# acceso anónimo y piden una sesión iniciada. Si existe la variable de entorno
+# YTDLP_COOKIES con un archivo de cookies en formato Netscape (el que exportan
+# extensiones como "Get cookies.txt" desde un navegador con sesión iniciada),
+# se usa para todas las peticiones a yt-dlp; cada línea de ese archivo trae su
+# propio dominio, así que yt-dlp solo envía las cookies que le correspondan a
+# cada sitio. Sin esa variable, todo sigue funcionando igual que antes
+# (acceso anónimo). El valor nunca se registra en logs ni se expone por la API.
+# -----------------------------------------------------------------------
+
+_COOKIE_FILE = os.path.join(DOWNLOAD_DIR, ".cookies.txt")
+
+
+def _write_cookie_file() -> Optional[str]:
+    raw = os.environ.get("YTDLP_COOKIES")
+    if not raw:
+        return None
+    try:
+        if not os.path.exists(_COOKIE_FILE):
+            with open(_COOKIE_FILE, "w", encoding="utf-8") as f:
+                f.write(raw)
+            os.chmod(_COOKIE_FILE, 0o600)
+        return _COOKIE_FILE
+    except OSError:
+        return None
+
+
+COOKIE_FILE = _write_cookie_file()
+
+
+def cookie_opts() -> dict:
+    return {"cookiefile": COOKIE_FILE} if COOKIE_FILE else {}
+
+
+# ---------------------------------------------------------------------------
 # Opciones que elige el usuario
 # ---------------------------------------------------------------------------
 
@@ -225,6 +260,7 @@ def _flat_playlist(url: str, noplaylist: bool) -> dict:
         "noplaylist": noplaylist,
         "extract_flat": "in_playlist",
         "playlistend": 200,
+        **cookie_opts(),
     }
     with yt_dlp.YoutubeDL(opts) as ydl:
         return ydl.extract_info(url, download=False)
@@ -520,6 +556,7 @@ def _download(job: Job, url: str, o: Options) -> list[Item]:
         "progress_hooks": [hook],
         # mp4 si las pistas caben; si no (VP9/AV1 + Opus), mkv
         "merge_output_format": "mp4/mkv",
+        **cookie_opts(),
     }
     if o.playlist:
         ydl_opts["playlistend"] = MAX_PLAYLIST_ITEMS
