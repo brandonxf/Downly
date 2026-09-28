@@ -114,14 +114,44 @@ _COOKIE_FILE = os.path.join(DOWNLOAD_DIR, ".cookies.txt")
 def _write_cookie_file() -> Optional[str]:
     raw = os.environ.get("YTDLP_COOKIES")
     if not raw:
+        print("[cookies] YTDLP_COOKIES no está configurada; se usará acceso anónimo.")
         return None
     try:
         if not os.path.exists(_COOKIE_FILE):
             with open(_COOKIE_FILE, "w", encoding="utf-8") as f:
                 f.write(raw)
             os.chmod(_COOKIE_FILE, 0o600)
+
+        # Diagnóstico SIN exponer valores: solo contamos líneas y dominios,
+        # y avisamos si falta la cabecera Netscape (causa típica de que
+        # yt-dlp ignore el archivo en silencio y siga como si no hubiera
+        # cookies, dando el mismo error de "rate-limit anónimo" de siempre).
+        lines = raw.splitlines()
+        has_header = any(
+            l.strip().startswith("# Netscape HTTP Cookie File") for l in lines[:5]
+        )
+        cookie_lines = [l for l in lines if l and not l.startswith("#") and "\t" in l]
+        domains = sorted({l.split("\t", 1)[0] for l in cookie_lines})
+        print(
+            f"[cookies] YTDLP_COOKIES configurada: {len(cookie_lines)} cookie(s) "
+            f"con tabulador para {len(domains)} dominio(s) {domains}; "
+            f"cabecera Netscape presente: {has_header}."
+        )
+        if not has_header:
+            print(
+                "[cookies] AVISO: falta la línea '# Netscape HTTP Cookie File' "
+                "al inicio del valor; yt-dlp puede ignorar el archivo."
+            )
+        if not cookie_lines:
+            print(
+                "[cookies] AVISO: no se detectó ninguna línea de cookie separada "
+                "por tabulador (¿se convirtieron los tabs en espacios al pegar "
+                "en Render?)."
+            )
+
         return _COOKIE_FILE
-    except OSError:
+    except OSError as exc:
+        print(f"[cookies] No se pudo escribir el archivo de cookies: {exc}")
         return None
 
 
