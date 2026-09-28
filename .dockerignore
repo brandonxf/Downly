@@ -1,0 +1,12 @@
+venv/
+.git/
+.gitignore
+.impeccable/
+__pycache__/
+*.pyc
+.env
+.vscode/
+.idea/
+*.pdf
+Downly - Descarga videos y audio pegando un link_files/
+Downly - Descarga videos y audio pegando un link.html

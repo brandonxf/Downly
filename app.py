@@ -92,5 +92,14 @@ def api_job_file(job_id):
 
 
 if __name__ == "__main__":
-    # debug=True solo para desarrollo local
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    import os
+
+    # host 0.0.0.0 para poder entrar tanto desde este equipo (localhost) como
+    # desde otros dispositivos en la misma red o, en un servidor como Render,
+    # desde internet. PORT lo define la plataforma de hosting; en local usa 5000.
+    port = int(os.environ.get("PORT", 5000))
+    # El depurador interactivo de Flask no debe quedar activo si la app es
+    # accesible fuera de este equipo: se activa solo si se pide explícitamente
+    # con FLASK_DEBUG=1 (uso local).
+    debug = os.environ.get("FLASK_DEBUG") == "1"
+    app.run(host="0.0.0.0", port=port, debug=debug, threaded=True)
