@@ -15,6 +15,7 @@ Todo el estado vive en memoria: es una app de uso local, un solo proceso.
 
 from __future__ import annotations
 
+import gc
 import glob
 import os
 import re
@@ -431,7 +432,11 @@ def build_command(item: Item, o: Options, dst: str) -> Optional[list]:
         if video_ok and audio_ok and not sub and src_ext == "mp4":
             return None
         v = ["-c:v", "copy"] if video_ok else [
+            # -threads limitado: en un servidor con poca RAM, dejar que libx264
+            # use todos los núcleos dispara el número de buffers internos (y la
+            # memoria) sin ganar mucho en velocidad en una sola CPU compartida.
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
+            "-threads", "2",
         ]
         a = ["-c:a", "copy"] if audio_ok else ["-c:a", "aac", "-b:a", "192k"]
         s = ["-c:s", "mov_text"]
@@ -444,7 +449,10 @@ def build_command(item: Item, o: Options, dst: str) -> Optional[list]:
         s = ["-c:s", "srt"]
         tail = []
     else:  # webm: se re-codifica siempre (más lento)
-        v = ["-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0", "-row-mt", "1", "-deadline", "good", "-cpu-used", "4"]
+        v = [
+            "-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0", "-row-mt", "1",
+            "-deadline", "good", "-cpu-used", "4", "-threads", "2",
+        ]
         a = ["-c:a", "libopus", "-b:a", "160k"]
         s = []
         tail = []
@@ -461,9 +469,11 @@ def build_command(item: Item, o: Options, dst: str) -> Optional[list]:
 
 def run_ffmpeg(cmd: list) -> None:
     try:
+        # Con -loglevel error, stdout no trae nada útil: se descarta en vez
+        # de guardarlo en memoria (capture_output guardaría ambos flujos).
         subprocess.run(
-            cmd, check=True, capture_output=True, text=True,
-            encoding="utf-8", errors="replace", timeout=FFMPEG_TIMEOUT,
+            cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+            text=True, encoding="utf-8", errors="replace", timeout=FFMPEG_TIMEOUT,
         )
     except subprocess.CalledProcessError as e:
         lines = (e.stderr or "").strip().splitlines()
@@ -511,7 +521,14 @@ class Job:
 
 
 JOBS: dict[str, Job] = {}
-_pool = ThreadPoolExecutor(max_workers=3)
+# Un solo trabajo a la vez: en un servidor con poca RAM (el plan free de
+# Render da ~512 MB), cada descarga+conversión puede acercarse a ese límite
+# por sí sola. Con varios workers en paralelo, dos trabajos simultáneos
+# podían sumar más memoria de la que había disponible y el proceso terminaba
+# reiniciado a mitad de una descarga (perdiendo el estado en memoria de todos
+# los jobs en curso). Si el servidor tiene más RAM en el futuro, esto se
+# puede subir de nuevo.
+_pool = ThreadPoolExecutor(max_workers=1)
 
 # La descarga ocupa la mayor parte de la barra; el resto es ffmpeg y empaquetado
 DOWNLOAD_WEIGHT = 0.85
@@ -704,6 +721,10 @@ def _run_job(job: Job, url: str, o: Options) -> None:
         job.status, job.error = "error", f"Error inesperado: {clean_error(e)}"
     finally:
         job.finished_at = time.time()
+        # info_dict de yt-dlp (formatos, miniaturas...) puede pesar varios MB
+        # por video; con un solo proceso corriendo trabajos uno tras otro,
+        # sin esto se va quedando en memoria más de lo necesario entre jobs.
+        gc.collect()
 
 
 def start_job(url: str, o: Options) -> Job:
